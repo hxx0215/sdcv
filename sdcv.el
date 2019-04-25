@@ -491,6 +491,20 @@ will be displayed in buffer named with `sdcv-buffer-name' with
     (sdcv-goto-sdcv)
     (sdcv-mode-reinit)))
 
+(defun sdcv-translate-result (word dictionary-list)
+  "Call sdcv to search word in dictionary list, return filtered
+string of results."
+  (sdcv-filter
+   (shell-command-to-string
+    ;; Set LANG environment variable, make sure `shell-command-to-string' can handle CJK character correctly.
+    (format "LANG=en_US.UTF-8 %s -0 -n %s %s --data-dir=%s"
+            sdcv-program
+            (mapconcat (lambda (dict)
+                         (concat "-u \"" dict "\""))
+                       dictionary-list " ")
+            word
+            sdcv-dictionary-data-dir))))
+
 (defun sdcv-search-simple (&optional word)
   "Search WORD simple translate result."
   (let ((result (sdcv-search-with-dictionary word sdcv-dictionary-simple-list)))
@@ -576,20 +590,6 @@ Argument DICTIONARY-LIST the word that need transform."
           (return word)
         (setq search-index (+ search-index (length word))))
       )))
-
-(defun sdcv-translate-result (word dictionary-list)
-  "Call sdcv to search word in dictionary list, return filtered
-string of results."
-  (sdcv-filter
-   (shell-command-to-string
-    ;; Set LANG environment variable, make sure `shell-command-to-string' can handle CJK character correctly.
-    (format "LANG=en_US.UTF-8 %s -x -n %s %s --data-dir=%s"
-            sdcv-program
-            (mapconcat (lambda (dict)
-                         (concat "-u \"" dict "\""))
-                       dictionary-list " ")
-            word
-            sdcv-dictionary-data-dir))))
 
 (defun sdcv-filter (sdcv-string)
   "This function is for filter sdcv output string,.
